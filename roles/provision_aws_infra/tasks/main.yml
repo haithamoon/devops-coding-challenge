@@ -1,0 +1,105 @@
+---
+# Role for Provisioning EC2 instances and its requirements.
+
+- name: Create VPC
+  ec2_vpc_net:
+    name:             "{{ vpc_name }}"
+    cidr_block:       "{{ vpc_cidr_block }}"
+    region:           "{{ aws_region }}"
+    state:            "present"
+  register: my_vpc
+
+- name: Set VPC ID in variable
+  set_fact:
+    vpc_id: "{{ my_vpc.vpc.id }}"
+
+- name: Create subnets inside VPC
+  ec2_vpc_subnet:
+    state:            "present"
+    vpc_id:           "{{ vpc_id }}"
+    region:           "{{ aws_region }}"
+    cidr:             "{{ item.cidr }}"
+    az:               "{{aws_region}}{{ item.az }}"
+    resource_tags:
+      Name:           "{{ item.name }}"
+  with_items:
+    - "{{ subnets }}"
+  register: my_subnets
+
+- name: Create VPC Internet gateway for
+  ec2_vpc_igw:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_id }}"
+    state: present
+  register: igw
+
+- name: Create RouteTable for public subnet
+  ec2_vpc_route_table:
+    region: "{{ aws_region }}"
+    vpc_id: "{{ vpc_id }}"
+    tags:
+      Name: PublicRt
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+    subnets: '{{ my_subnets.results[0].subnet.id }}'
+
+
+- name: Create AWS Security Group for internet facing instance
+  ec2_group:
+    region:      "{{ aws_region }}"
+    vpc_id:      "{{ vpc_id }}"
+    name:        "{{ item.name }}"
+    description: "{{ item.desc }}"
+    rules:       "{{ item.rules }}"
+  with_items:
+    - "{{ sec_group }}"
+  register: sg
+
+- name: save SG-ID in a variable
+  set_fact:
+    sg_id: '{{ sg.results[0]["group_id"] }}'
+
+- name: Create EC2 key
+  ec2_key:
+    region: "{{ aws_region }}"
+    name:   csit_ssh_key
+  register: ec2_key_result
+
+- name: Save private key
+  copy: content="{{ ec2_key_result.key.private_key }}" dest="./csit.pem" mode=0600
+  when: ec2_key_result.changed
+
+- name: Create AWS EC2 Instance
+  ec2:
+    region:        "{{ aws_region }}"
+    group_id:      "{{ sg_id }}"
+    instance_type: t2.medium
+    image:         ami-456b493a
+    vpc_subnet_id: "{{ my_subnets.results[0].subnet.id }}"
+    assign_public_ip: yes
+    key_name: "{{ ec2_key_result.key.name }}"
+  register: ec2
+
+- name: Wait for the instances to boot by checking the ssh port
+  wait_for:
+      host: "{{ item.public_ip }}"
+      port:     22
+      delay:    60
+      timeout:  300
+      state: started
+  with_items: "{{ ec2.instances }}"
+
+- add_host:
+    name: "{{ ec2.instances[0].public_ip }}"
+    groups: running_node
+
+- route53:
+      state: present
+      zone: iceage.me.uk
+      record: csit.iceage.me.uk
+      type: A
+      ttl: 60
+      overwrite: yes
+      value: "{{ ec2.instances[0].public_ip }}"
+      wait: yes

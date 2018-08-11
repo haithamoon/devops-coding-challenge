@@ -1,0 +1,26 @@
+---
+- name: Download Docker CE installer
+  get_url:
+      url: https://releases.rancher.com/install-docker/{{ docker_version }}.sh
+      dest: /tmp/{{ docker_version }}.sh
+
+- name: Run Docker install script
+  shell: bash /tmp/{{ docker_version }}.sh
+
+- name: Remove Installer file
+  file:
+    path: /tmp/{{ docker_version }}.sh
+    state: absent
+
+- name: Install Dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+     - python-setuptools
+     - python-pip
+
+- name: install docker-py to manage containers
+  pip:
+    name: docker-py
+    state: present

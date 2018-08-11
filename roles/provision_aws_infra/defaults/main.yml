@@ -1,0 +1,34 @@
+---
+
+# Defauls for provision_ec2 role
+
+aws_region: "us-east-1"
+
+## VPC Information
+vpc_name:       "My VPC"
+vpc_cidr_block: "10.10.0.0/16"
+
+# Subnets
+subnets:
+  - cidr: "10.10.2.0/24"
+    az: "b"
+    name: "pub_sub2_AZb"
+
+sec_group:
+  - name: "allow_traffic_to_instance"
+    desc: " Allow SSH and HTTP traffic to instance"
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "0.0.0.0/0"  ## Change it to your VPN server IP, if you have one.
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: "0.0.0.0/0"
+      - proto: icmp
+        from_port: -1
+        to_port: -1
+        cidr_ip: "0.0.0.0/0"
+
+

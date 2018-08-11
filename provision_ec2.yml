@@ -1,0 +1,20 @@
+---
+# Playbook for AWS EC2 provisioning
+
+- hosts: local
+  connection: local
+  gather_facts: False
+
+  roles:
+    - { role: provision_aws_infra, tags: ['provision_aws_infra'] }
+
+- hosts: running_node
+  user: ubuntu
+  gather_facts: False
+  become: yes
+  vars:
+    ansible_ssh_private_key_file: ./csit.pem
+  roles:
+    - { role: provision_ec2, tags: ['provision_ec2'] }
+
+
