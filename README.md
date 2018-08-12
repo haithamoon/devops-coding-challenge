@@ -21,13 +21,24 @@ So we need to do the following:
 
 ## Set credentials, change xxxxxxxxxx with your aws keys
  
-export AWS_ACCESS_KEY_ID='xxxxxxxxxx'
-export AWS_SECRET_ACCESS_KEY='xxxxxxxxxx'
+>>> export AWS_ACCESS_KEY_ID='xxxxxxxxxx'
+>>> export AWS_SECRET_ACCESS_KEY='xxxxxxxxxx'
 
 ## Clone the repo, then run the playbook
 
-cd in_to_the_repo 
-ansible-playbook -i local, provision_ec2.yml
+>>> cd in_to_the_repo 
+>>> ansible-playbook -i local, provision_ec2.yml
+
+## Run the monitoring Script:
+#you need to have requests module installed.
+
+>>> python check_website.py
+
+Script output: is a message in case of success or faliure of the check, plus an exit status code for each case.
+0 > for OK / passed check,
+1 > if server responds with 200, but with invalid content and, 
+2 > for faliures, either server is unreachable or web server is down.
+
 ===========================
 ===========================
 ===========================
