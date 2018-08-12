@@ -23,21 +23,21 @@
     src: nginx.conf
     dest: "{{ nginx_base_directory }}/nginx.conf"
     mode: '0644'
-#  notify: 'restart-docker-nginx'
+  notify: 'restart nginx container'
 
 - name: Upload vHost config in place
   copy:
     src: vhost01.conf
     dest: "{{ nginx_base_directory }}/{{ nginx_sites_enabled_dir }}/vhost01.conf"
     mode: '0644'
-#  notify: 'restart-docker-nginx'
+  notify: 'restart nginx container'
 
 - name: Upload the static contect to be served by Nginx to the host"
   copy:
     src: version.txt
     dest: "{{ nginx_base_directory }}"
     mode: '0644'
-#  notify: 'restart-docker-nginx'
+  notify: 'restart nginx container'
 
 - name: Start the nginx docker container
   docker_container:
