@@ -21,8 +21,8 @@ So we need to do the following:
 
 ## Set credentials, change xxxxxxxxxx with your aws keys
  
->>> export AWS_ACCESS_KEY_ID='xxxxxxxxxx'
->>> export AWS_SECRET_ACCESS_KEY='xxxxxxxxxx'
+export AWS_ACCESS_KEY_ID='xxxxxxxxxx'
+export AWS_SECRET_ACCESS_KEY='xxxxxxxxxx'
 
 ## Clone the repo, then run the playbook
 
