@@ -87,6 +87,7 @@
     image:         ami-456b493a
     vpc_subnet_id: "{{ my_subnets.results[0].subnet.id }}"
     assign_public_ip: yes
+    wait: yes
     key_name: "{{ ec2_key_result.key.name }}"
   register: ec2
 
